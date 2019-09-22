@@ -1,18 +1,52 @@
+import processing.video.*;
+
 PShader chroma;
 PImage guy;
 PImage beach;
+Movie myMovie; 
+Capture cam;
+
 void setup(){
- size(1080,720,P2D);
+ size(1280,720,P2D);
  chroma = loadShader("chroma.glsl");
  chroma.set("u_res",(float)width,(float)height);
  beach=loadImage("beach.jpg");
  guy=loadImage("guy.jpg");
  chroma.set("u_tex",guy);
+ myMovie = new Movie(this, "office.mp4");
+ myMovie.loop();
+ String[] cameras = Capture.list();
+  
+  if (cameras.length == 0) {
+    println("There are no cameras available for capture.");
+    exit();
+  } else {
+    println("Available cameras:");
+    for (int i = 0; i < cameras.length; i++) {
+      println(cameras[i]);
+    }
+    
+    // The camera can be initialized directly using an 
+    // element from the array returned by list():
+    cam = new Capture(this, cameras[0]);
+    cam.start();     
+  }    
 }
 
 void draw(){
+    if (cam.available() == true) {
+    cam.read();
+    guy=cam;
+  }
+  if (myMovie.available() == true) {
+    myMovie.read();
+    beach = myMovie;
+  }
+  
+  chroma.set("u_tex",guy);
   resetShader();
   image(beach,0,0);
+  //image(myMovie,0,0);
   shader(chroma);
   
   float HUE,SAT,BRI,
